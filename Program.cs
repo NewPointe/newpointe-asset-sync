@@ -71,7 +71,7 @@ namespace NewPointe.AssetSync
                 // If we got a match, update the JitBit asset
                 if(jbAsset != null) {
 
-                    Console.WriteLine("Syncing '{0}'@JitBit with '{1}'@ProfileManager", jbAsset.ModelName, pmDevice.DeviceName);
+                        Console.WriteLine("Syncing device {0}", pmDevice.SerialNumber);
 
                     var assetUpdate = new JitBitRest.UpdateAssetParameters {
                         Id = jbAsset.ItemId,
@@ -87,6 +87,18 @@ namespace NewPointe.AssetSync
                 // Otherwise, create an new asset fot it
                 else {
 
+                        Console.WriteLine("Creating device {0}", pmDevice.SerialNumber);
+
+                        var assetUpdate = new JitBitRest.CreateAssetParameters {
+                            ModelName = string.Format("{0} ({1})", pmDevice.ModelName, pmDevice.DeviceName),
+                            Manufacturer = "Apple",
+                            Type = "",
+                            Supplier = "",
+                            Quantity = 1,
+                            SerialNumber = pmDevice.SerialNumber
+                        };
+
+                        await JitBitClient.CreateAsset(assetUpdate);
                 }
 
             }
