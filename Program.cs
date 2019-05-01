@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -66,13 +66,7 @@ namespace NewPointe.AssetSync
 
                 // Try matching by serial number
                 if(pmDevice.SerialNumber != null) {
-                    jbAsset = JitBitAssetsBySerialNumber.GetValueOrDefault(pmDevice.SerialNumber);
-                }
-
-                // Try matching on name
-                if(jbAsset == null) {
-                    jbAsset =JitBitAssets.FirstOrDefault(a => a.ModelName.Contains(pmDevice.DeviceName));
-                }
+                    jbAsset = JitBitAssetsBySerialNumber.GetValueOrDefault(pmDevice.SerialNumber.ToLowerInvariant());
 
                 // If we got a match, update the JitBit asset
                 if(jbAsset != null) {
