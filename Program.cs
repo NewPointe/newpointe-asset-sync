@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,6 +10,7 @@ using System.Collections.Generic;
 
 using JitBitRest = NewPointe.JitBit.Structures;
 using ProfileManagerRest = NewPointe.ProfileManager.Structures;
+using System.Threading;
 
 namespace NewPointe.AssetSync
 {
@@ -52,7 +53,7 @@ namespace NewPointe.AssetSync
             await ProfileManagerClient.Login(ProfileManagerUsername, ProfileManagerPassword);
 
             var ProfileManagerDeviceIds = await ProfileManagerClient.GetDeviceIds();
-            var ProfileManagerDevices = await ProfileManagerClient.GetDevices(ProfileManagerDeviceIds.Take(2).ToArray());
+            var ProfileManagerDevices = await ProfileManagerClient.GetDevices(ProfileManagerDeviceIds.ToArray());
             var ProfileManagerDevicesById = ProfileManagerDevices.ToDictionary(d => d.Id);
             var ProfileManagerDevicesBySerialNumber = ProfileManagerDevices.Where(d => d.SerialNumber != null).ToDictionary(d => d.SerialNumber.ToLowerInvariant());
 
@@ -68,24 +69,24 @@ namespace NewPointe.AssetSync
                 if(pmDevice.SerialNumber != null) {
                     jbAsset = JitBitAssetsBySerialNumber.GetValueOrDefault(pmDevice.SerialNumber.ToLowerInvariant());
 
-                // If we got a match, update the JitBit asset
-                if(jbAsset != null) {
+                    // If we got a match, update the JitBit asset
+                    if(jbAsset != null) {
 
                         Console.WriteLine("Syncing device {0}", pmDevice.SerialNumber);
 
-                    var assetUpdate = new JitBitRest.UpdateAssetParameters {
-                        Id = jbAsset.ItemId,
-                        ModelName = string.Format("{0} ({1})", pmDevice.ModelName, pmDevice.DeviceName),
-                        Manufacturer = "Apple",
-                        Quantity = 1,
-                        SerialNumber = pmDevice.SerialNumber
-                    };
+                        var assetUpdate = new JitBitRest.UpdateAssetParameters {
+                            Id = jbAsset.ItemId,
+                            ModelName = string.Format("{0} ({1})", pmDevice.ModelName, pmDevice.DeviceName),
+                            Manufacturer = "Apple",
+                            Quantity = 1,
+                            SerialNumber = pmDevice.SerialNumber
+                        };
 
-                    await JitBitClient.UpdateAsset(assetUpdate);
+                        await JitBitClient.UpdateAsset(assetUpdate);
 
-                }
-                // Otherwise, create an new asset fot it
-                else {
+                    }
+                    // Otherwise, create an new asset fot it
+                    else {
 
                         Console.WriteLine("Creating device {0}", pmDevice.SerialNumber);
 
@@ -99,6 +100,13 @@ namespace NewPointe.AssetSync
                         };
 
                         await JitBitClient.CreateAsset(assetUpdate);
+                    }
+
+                    Thread.Sleep(1000);
+
+                }
+                else {
+                    Console.WriteLine("Skipping {0} because it has no serial number", pmDevice.DeviceName);
                 }
 
             }
